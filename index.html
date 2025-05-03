@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Website</title>
+    
+    <!-- 
+    /************************************************************************
+     * DEPLOYMENT INSTRUCTIONS
+     * 
+     * To deploy this website:
+     * 
+     * 1. Create a GitHub repository:
+     *    - Go to github.com and sign in (or create an account)
+     *    - Click the "+" icon in the top-right corner and select "New repository"
+     *    - Name your repository (e.g., "test-website")
+     *    - Make sure it's set to "Public"
+     *    - Click "Create repository"
+     * 
+     * 2. Upload this index.html file to your repository:
+     *    - In your new repository, click "Add file" > "Upload files"
+     *    - Drag this index.html file or browse to select it
+     *    - Add a commit message (e.g., "Add website files")
+     *    - Click "Commit changes"
+     * 
+     * 3. Enable GitHub Pages:
+     *    - Go to your repository's "Settings" tab
+     *    - Scroll down to "GitHub Pages" section
+     *    - Under "Source", select "main" branch
+     *    - Click "Save"
+     *    - GitHub will provide you with a URL for your website
+     *    - It may take a few minutes for your site to be published
+     * 
+     * 4. Set up Firebase (see Firebase setup instructions in the Backend section)
+     * 
+     * Note: You can edit this file directly on GitHub via the web interface
+     * if you need to make changes later.
+     ************************************************************************/
+    -->
+    
+    <!-- ==================== FRONTEND SECTION ==================== -->
+    <!-- CSS Styles -->
+    <style>
+        /* Modern, clean styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #4a89dc;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .names-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #4a89dc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3b6fc5;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        li:last-child {
+            border-bottom: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .section-divider {
+            margin: 40px 0;
+            border-top: 1px dashed #ccc;
+            text-align: center;
+            position: relative;
+        }
+        
+        .section-label {
+            background: #f5f7fa;
+            padding: 0 15px;
+            position: relative;
+            top: -12px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== FRONTEND HTML STRUCTURE ==================== -->
+    <header>
+        <h1>Test Website</h1>
+    </header>
+    
+    <div class="container">
+        <div class="form-container">
+            <h2>Add Your Name</h2>
+            <p>Enter your name below and click submit to add it to our list.</p>
+            <form id="nameForm">
+                <input type="text" id="nameInput" placeholder="Enter your name" required>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+        
+        <div class="names-container">
+            <h2>Submitted Names</h2>
+            <p id="statusMessage" class="loading">Loading names...</p>
+            <ul id="namesList"></ul>
+        </div>
+        
+        <div class="section-divider">
+            <span class="section-label">Frontend / Backend Separation</span>
+        </div>
+    </div>
+    
+    <footer>
+        <p>A simple test website with Firebase backend</p>
+    </footer>
+
+    <!-- ==================== BACKEND SECTION ==================== -->
+    <!-- Firebase SDK (v9) - REQUIRED -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+
+    <script>
+        /* ==================== FIREBASE SETUP INSTRUCTIONS ==================== */
+        /************************************************************************
+         * FIREBASE SETUP INSTRUCTIONS
+         * 
+         * 1. Create a Firebase account and project:
+         *    - Go to https://firebase.google.com/ and sign in with a Google account
+         *    - Click "Get started" and then "Add project"
+         *    - Enter a project name (e.g., "test-website")
+         *    - Follow the prompts (you can disable Google Analytics for simplicity)
+         *    - Click "Create project"
+         * 
+         * 2. Set up Firestore Database:
+         *    - In your Firebase project console, click "Firestore Database" in the left menu
+         *    - Click "Create database"
+         *    - Start in "test mode" for simplicity (this allows anyone to read/write)
+         *    - Choose a location closest to your users
+         *    - Click "Enable"
+         * 
+         * 3. Register your web app:
+         *    - In your Firebase project console, click the </> (web) icon
+         *    - Enter a nickname for your app (e.g., "test-website")
+         *    - No need to set up Firebase Hosting
+         *    - Click "Register app"
+         * 
+         * 4. Copy your Firebase configuration:
+         *    - Firebase will show you a configuration object that looks like this:
+         *    
+         *    const firebaseConfig = {
+         *      apiKey: "YOUR_API_KEY",
+         *      authDomain: "your-project-id.firebaseapp.com",
+         *      projectId: "your-project-id",
+         *      storageBucket: "your-project-id.appspot.com",
+         *      messagingSenderId: "123456789012",
+         *      appId: "1:123456789012:web:abc123def456"
+         *    };
+         *    
+         * 5. Replace the placeholder Firebase configuration below with your actual configuration
+         ************************************************************************/
+
+        /* ==================== FIREBASE CONFIGURATION (BACKEND) ==================== */
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdnvSetpOHsYo9e8CWTaajrSqL_k9A09A",
+            authDomain: "test-ffb93.firebaseapp.com",
+            projectId: "test-ffb93",
+            storageBucket: "test-ffb93.firebasestorage.app",
+            messagingSenderId: "531315510459",
+            appId: "1:531315510459:web:883efd09d2fed3abf26d9e",
+            measurementId: "G-NV2BRE7XGJ"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Get a reference to the Firestore database
+        const db = firebase.firestore();
+        
+        /* ==================== FRONTEND-BACKEND CONNECTION ==================== */
+        // Get references to HTML elements from the frontend
+        const nameForm = document.getElementById('nameForm');
+        const nameInput = document.getElementById('nameInput');
+        const namesList = document.getElementById('namesList');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        /* ==================== BACKEND FUNCTIONALITY: SAVE DATA ==================== */
+        // Handle form submissions
+        nameForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+            
+            const name = nameInput.value.trim();
+            if (name === '') return; // Don't submit empty names
+            
+            // Show loading status on frontend
+            statusMessage.textContent = 'Submitting...';
+            
+            // Add the name to Firestore database (backend)
+            db.collection('names').add({
+                name: name,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // Clear the input field after successful submission
+                nameInput.value = '';
+                statusMessage.textContent = '';
+            })
+            .catch((error) => {
+                // Show error message on frontend
+                statusMessage.textContent = 'Error: ' + error.message;
+                console.error('Error adding document: ', error);
+            });
+        });
+        
+        /* ==================== BACKEND FUNCTIONALITY: FETCH DATA ==================== */
+        // Listen for real-time updates from Firestore
+        function loadNames() {
+            // Show loading status on frontend
+            statusMessage.textContent = 'Loading names...';
+            
+            // Listen to the 'names' collection in the database, ordered by timestamp
+            db.collection('names')
+                .orderBy('timestamp', 'desc') // Show newest first
+                .onSnapshot((snapshot) => {
+                    // Clear the current list in frontend
+                    namesList.innerHTML = '';
+                    
+                    // Check if there are any names
+                    if (snapshot.empty) {
+                        statusMessage.textContent = 'No names submitted yet. Be the first!';
+                        return;
+                    }
+                    
+                    // Hide the status message when data is loaded
+                    statusMessage.textContent = '';
+                    
+                    // Loop through the documents and add each name to the frontend list
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const listItem = document.createElement('li');
+                        listItem.textContent = data.name;
+                        namesList.appendChild(listItem);
+                    });
+                }, (error) => {
+                    // Handle any errors and show on frontend
+                    statusMessage.textContent = 'Error loading names: ' + error.message;
+                    console.error('Error getting documents: ', error);
+                });
+        }
+        
+        // Start loading names when the page loads (initialize backend data fetch)
+        document.addEventListener('DOMContentLoaded', loadNames);
+    </script>
+</body>
+</html>
